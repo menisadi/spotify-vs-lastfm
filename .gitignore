@@ -1,0 +1,8 @@
+*.jpg
+*.jpeg
+*.png
+
+__pycache__/
+.git-back/
+.DS_Store
+.python-version
