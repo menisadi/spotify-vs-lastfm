@@ -16,6 +16,10 @@ def connection_graph(
     positions2 = {item: len(list2) - i for i, item in enumerate(list2)}
 
     all_items = set(list1).union(set(list2))
+    in_both = set(list1).intersection(set(list2))
+    disagree = set(list1).symmetric_difference(set(list2))
+    colors_dict = {item: "black" for item in in_both}
+    colors_dict.update({item: "red" for item in disagree})
 
     if list1_title != "":
         ax.text(
@@ -34,7 +38,7 @@ def connection_graph(
             ha="right",
             va="center",
             fontsize=10,
-            color="blue",
+            color=colors_dict[item],
         )
     if list2_title != "":
         ax.text(
@@ -53,7 +57,7 @@ def connection_graph(
             ha="left",
             va="center",
             fontsize=10,
-            color="green",
+            color=colors_dict[item],
         )
 
     for item in all_items:

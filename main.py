@@ -1,6 +1,12 @@
+from string import capwords
 import pandas as pd
 import compare
 import plots
+
+
+def standardize_title(title: str) -> str:
+    """Convert a track title to standard title case format."""
+    return capwords(title.strip())
 
 
 def read_lists(
@@ -8,6 +14,12 @@ def read_lists(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     sdf = pd.read_csv(spotify_path)
     ldf = pd.read_csv(lastfm_path)
+
+    # Standardize track titles
+    sdf["track"] = sdf["track"].apply(standardize_title)
+    ldf["track"] = ldf["track"].apply(standardize_title)
+
+    return sdf, ldf
 
     return sdf, ldf
 
