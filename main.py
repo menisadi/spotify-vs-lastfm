@@ -1,7 +1,6 @@
 import pandas as pd
 import compare
-
-# import plots
+import plots
 
 
 def read_lists(
@@ -23,6 +22,14 @@ def main():
 
     similarity = compare.rbo(spotify_list, lastfm_list, p=0.9)
     print(f"RBO Similarity: {similarity:.3f}")
+
+    top_k_to_plot = 20
+    plots.connection_graph(
+        spotify_list[:top_k_to_plot],
+        lastfm_list[:top_k_to_plot],
+        list1_title="Spotify",
+        list2_title="Last.FM",
+    )
 
 
 if __name__ == "__main__":
