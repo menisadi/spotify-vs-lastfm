@@ -21,8 +21,6 @@ def read_lists(
 
     return sdf, ldf
 
-    return sdf, ldf
-
 
 def main():
     spotify_path = "./spotify.csv"

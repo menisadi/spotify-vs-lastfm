@@ -1,3 +1,6 @@
+import editdistance
+
+
 def rbo(list1, list2, p=0.9):
     """
     Compute Rank-Biased Overlap (RBO) between two lists.
@@ -22,26 +25,3 @@ def rbo(list1, list2, p=0.9):
         score += (1 - p) * (p ** (d - 1)) * overlap
 
     return score
-
-
-def almost_same(string1, string2):
-    """
-    Check if two strings are almost the same by matching every character
-    up to one symbolic character.
-
-    Parameters:
-        string1 (str): The first string.
-        string2 (str): The second string.
-
-    Returns:
-        bool: True if the strings match ignoring one symbolic character, otherwise False.
-    """
-    SYMBOLS = {"-", "'", '"', "_", ".", ",", "!", "?", " "}
-
-    def normalize(s):
-        return "".join(c for c in s if c not in SYMBOLS)
-
-    normalized1 = normalize(string1)
-    normalized2 = normalize(string2)
-
-    return normalized1 == normalized2
