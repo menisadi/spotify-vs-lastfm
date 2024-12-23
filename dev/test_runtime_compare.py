@@ -29,17 +29,13 @@ def two_loops_approach(list1, list2):
 
     # Find closest matches for list1 → list2
     for item1 in list1:
-        closest_match = min(
-            list2, key=lambda item2: editdistance.eval(item1, item2)
-        )
+        closest_match = min(list2, key=lambda item2: editdistance.eval(item1, item2))
         distance = editdistance.eval(item1, closest_match)
         closest_list1_to_list2[item1] = (closest_match, distance)
 
     # Find closest matches for list2 → list1
     for item2 in list2:
-        closest_match = min(
-            list1, key=lambda item1: editdistance.eval(item2, item1)
-        )
+        closest_match = min(list1, key=lambda item1: editdistance.eval(item2, item1))
         distance = editdistance.eval(item2, closest_match)
         closest_list2_to_list1[item2] = (closest_match, distance)
 
@@ -54,9 +50,7 @@ def pairwise_matrix_approach(list1, list2):
             distance = editdistance.eval(item1, item2)
             distances.append((item1, item2, distance))
 
-    df = pd.DataFrame(
-        distances, columns=["list1_item", "list2_item", "distance"]
-    )
+    df = pd.DataFrame(distances, columns=["list1_item", "list2_item", "distance"])
 
     # Find closest matches for list1 → list2
     closest_list1_to_list2 = (
@@ -101,11 +95,36 @@ def single_pass_approach(list1, list2):
     return closest_list1_to_list2, closest_list2_to_list1
 
 
+def make_almost_identical(series1, series2):
+    # Convert Series to list for processing
+    list1 = series1.tolist()
+    list2 = series2.tolist()
+
+    # Get closest matches using the provided function
+    closest_list1_to_list2, closest_list2_to_list1 = single_pass_approach(list1, list2)
+
+    # Build a mapping for replacements (only for distances 1 or 2)
+    replacements = {}
+    for item1, (item2, distance) in closest_list1_to_list2.items():
+        if 0 < distance <= 2:
+            replacements[item1] = item2
+
+    # Apply replacements to both Series
+    series1 = series1.replace(replacements)
+    series2 = series2.replace(
+        {v: k for k, v in replacements.items()}
+    )  # Reverse replacements for series2
+
+    return series1, series2
+
+
 # Test the functions
 if __name__ == "__main__":
     spotify_path = "./spotify.csv"
     lastfm_path = "./lastfm.csv"
     spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
+
+    # make_almost_identical(spotify_df["track"], lastfm_df["track"])
 
     spotify_list = spotify_df["track"].to_list()
     lastfm_list = lastfm_df["track"].to_list()
