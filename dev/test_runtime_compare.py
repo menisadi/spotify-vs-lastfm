@@ -1,3 +1,4 @@
+from os import close
 import time
 from string import capwords
 import editdistance
@@ -15,7 +16,6 @@ def read_lists(
     sdf = pd.read_csv(spotify_path)
     ldf = pd.read_csv(lastfm_path)
 
-    # Standardize track titles
     sdf["track"] = sdf["track"].apply(standardize_title)
     ldf["track"] = ldf["track"].apply(standardize_title)
 
@@ -107,6 +107,7 @@ def make_almost_identical(series1, series2):
     replacements = {}
     for item1, (item2, distance) in closest_list1_to_list2.items():
         if 0 < distance <= 2:
+            print(item1)
             replacements[item1] = item2
 
     # Apply replacements to both Series
@@ -118,57 +119,46 @@ def make_almost_identical(series1, series2):
     return series1, series2
 
 
+def filter_alphanumeric(input_string):
+    return "".join(char for char in input_string if char.isalnum())
+
+
 # Test the functions
 if __name__ == "__main__":
     spotify_path = "./spotify.csv"
     lastfm_path = "./lastfm.csv"
     spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
+    spotify_df["stripped_track"] = spotify_df["track"].apply(filter_alphanumeric)
+    lastfm_df["stripped_track"] = lastfm_df["track"].apply(filter_alphanumeric)
 
-    # make_almost_identical(spotify_df["track"], lastfm_df["track"])
-
-    spotify_list = spotify_df["track"].to_list()
-    lastfm_list = lastfm_df["track"].to_list()
-
-    def measure_runtime(func, list1, list2, name):
-        start_time = time.time()
-        func(list1, list2)
-        end_time = time.time()
-        runtime = end_time - start_time
-        print(f"{name:<25} Runtime: {runtime:.4f} seconds")
-        return runtime
-
-    print("\nRuntime Comparison Test")
-    print("-" * 50)
-    print(
-        f"Testing with {len(spotify_list)} Spotify tracks and {len(lastfm_list)} LastFM tracks\n"
+    convert_dict = (
+        lastfm_df[["track", "stripped_track"]]
+        .merge(
+            spotify_df[["track", "stripped_track"]],
+            on="stripped_track",
+            suffixes=("_last", "_spot"),
+        )
+        .drop("stripped_track", axis=1)
+        .set_index("track_last")
+        .to_dict()["track_spot"]
     )
 
-    # Test all three approaches
-    runtime1 = measure_runtime(
-        two_loops_approach, spotify_list, lastfm_list, "Two Loops Approach"
-    )
-    runtime2 = measure_runtime(
-        pairwise_matrix_approach,
-        spotify_list,
-        lastfm_list,
-        "Pairwise Matrix Approach",
-    )
-    runtime3 = measure_runtime(
-        single_pass_approach, spotify_list, lastfm_list, "Single Pass Approach"
+    closest_list1_to_list2, closest_list2_to_list1 = single_pass_approach(
+        spotify_df["track"].to_list(), lastfm_df["track"].to_list()
     )
 
-    # Find the fastest approach
-    runtimes = {
-        "Two Loops": runtime1,
-        "Pairwise Matrix": runtime2,
-        "Single Pass": runtime3,
-    }
-    fastest = min(runtimes.items(), key=lambda x: x[1])
+    for item1, (item2, d) in closest_list1_to_list2.items():
+        if 0 < d <= 2:
+            print(f"{item1} -> {item2}")
 
-    print("\nResults Summary:")
-    print("-" * 50)
-    print(f"Fastest approach: {fastest[0]} ({fastest[1]:.4f} seconds)")
-    print(f"Speed comparison (relative to fastest):")
-    for approach, runtime in runtimes.items():
-        ratio = runtime / fastest[1]
-        print(f"{approach:<15} : {ratio:.2f}x slower")
+    print("Fixing!")
+    lastfm_df["track"] = lastfm_df["track"].replace(convert_dict)
+    # spotify_df["track"].replace(convert_dict)
+
+    closest_list1_to_list2, closest_list2_to_list1 = single_pass_approach(
+        spotify_df["track"].to_list(), lastfm_df["track"].to_list()
+    )
+
+    for item1, (item2, d) in closest_list1_to_list2.items():
+        if 0 < d <= 2:
+            print(f"{item1} -> {item2}")
