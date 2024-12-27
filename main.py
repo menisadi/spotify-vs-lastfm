@@ -1,4 +1,6 @@
+import argparse
 from string import capwords
+from matplotlib.pyplot import plot_date
 import pandas as pd
 import compare
 import plots
@@ -48,7 +50,23 @@ def fix_names(spotify_df, lastfm_df):
     return spotify_df, lastfm_df
 
 
-def main():
+def print_diffs(spotify_list, lastfm_list):
+    spotify_only = set(spotify_list) - set(lastfm_list)
+    print("Songs only in Spotify:")
+    for song in spotify_list:
+        if song in spotify_only:
+            print(f"{song} (index: {spotify_list.index(song)})")
+
+    print()
+
+    lastfm_only = set(lastfm_list) - set(spotify_list)
+    print("Songs only in Last.FM:")
+    for song in lastfm_list:
+        if song in lastfm_only:
+            print(f"{song} (index: {lastfm_list.index(song)})")
+
+
+def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
     spotify_path = "./spotify.csv"
     lastfm_path = "./lastfm.csv"
     spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
@@ -56,17 +74,50 @@ def main():
     spotify_list = spotify_df["track"].to_list()
     lastfm_list = lastfm_df["track"].to_list()
 
-    similarity = compare.rbo(spotify_list, lastfm_list, p=0.9)
-    print(f"RBO Similarity: {similarity:.3f}")
+    if print_sim_score:
+        similarity = compare.rbo(spotify_list, lastfm_list, p=0.9)
+        print(f"RBO Similarity: {similarity:.3f}\n")
 
-    plots.connection_graph(
-        spotify_list,
-        lastfm_list,
-        top_k=20,
-        list1_title="Spotify",
-        list2_title="Last.FM",
-    )
+    if print_diff:
+        print_diffs(spotify_list, lastfm_list)
+
+    if plot_top_chart:
+        plots.connection_graph(
+            spotify_list,
+            lastfm_list,
+            top_k=20,
+            list1_title="Spotify",
+            list2_title="Last.FM",
+            xkcd=False,  # should the plot be in XKCD style or not
+        )
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Compare Spotify and Last.FM playlists"
+    )
+    parser.add_argument(
+        "--no-sim",
+        action="store_false",
+        dest="print_sim_score",
+        help="disable similarity score output",
+    )
+    parser.add_argument(
+        "--diff",
+        action="store_true",
+        dest="print_diff",
+        help="show differences between playlists",
+    )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        dest="plot_top_chart",
+        help="generate connection graph visualization",
+    )
+    args = parser.parse_args()
+
+    main(
+        print_sim_score=args.print_sim_score,
+        print_diff=args.print_diff,
+        plot_top_chart=args.plot_top_chart,
+    )
