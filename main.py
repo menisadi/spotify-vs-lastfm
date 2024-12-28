@@ -67,8 +67,8 @@ def print_diffs(spotify_list, lastfm_list):
 
 
 def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
-    spotify_path = "./spotify.csv"
-    lastfm_path = "./lastfm.csv"
+    spotify_path = "data/spotify.csv"
+    lastfm_path = "data/lastfm.csv"
     spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
 
     spotify_list = spotify_df["track"].to_list()
