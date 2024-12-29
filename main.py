@@ -52,6 +52,26 @@ def fix_names(spotify_df, lastfm_df):
 
 def print_diffs(spotify_list, lastfm_list):
     spotify_only = set(spotify_list) - set(lastfm_list)
+    lastfm_only = set(lastfm_list) - set(spotify_list)
+
+    spotify_only_list = [song for song in spotify_list if song in spotify_only]
+    lastfm_only_list = [song for song in lastfm_list if song in lastfm_only]
+
+    max_length = max(len(spotify_only_list), len(lastfm_only_list))
+
+    # Extend shorter list with empty strings to align columns
+    spotify_only_list += [""] * (max_length - len(spotify_only_list))
+    lastfm_only_list += [""] * (max_length - len(lastfm_only_list))
+
+    print(f"{'Spotify Only':<40} {'Last.FM Only'}")
+    print("-" * 80)
+
+    for spotify_song, lastfm_song in zip(spotify_only_list, lastfm_only_list):
+        print(f"{spotify_song:<40} {lastfm_song}")
+
+
+def print_diffs_old(spotify_list, lastfm_list):
+    spotify_only = set(spotify_list) - set(lastfm_list)
     print("Songs only in Spotify:")
     for song in spotify_list:
         if song in spotify_only:
