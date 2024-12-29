@@ -1,6 +1,5 @@
 import argparse
 from string import capwords
-from matplotlib.pyplot import plot_date
 import pandas as pd
 import compare
 import plots
