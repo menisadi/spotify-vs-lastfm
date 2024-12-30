@@ -17,6 +17,7 @@ def connection_graph(
     top_k: int = 20,
     list1_title: str = "",
     list2_title: str = "",
+    main_title: str = "",
     xkcd: bool = False,
 ):
     """
@@ -92,6 +93,7 @@ def connection_graph(
         ax.set_xlim(-0.2, 1.2)
         ax.set_ylim(-1, max(len(list1_top_k), len(list2_top_k)))
         ax.axis("off")
-        # ax.set_title("Connection Graph Between Two Lists", fontsize=14)
+        if main_title != "":
+            ax.set_title(main_title, fontsize=14)
 
         plt.show()

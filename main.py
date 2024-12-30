@@ -107,6 +107,7 @@ def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
             top_k=20,
             list1_title="Spotify",
             list2_title="Last.FM",
+            main_title="Top Tracks According to\n\n",
             xkcd=False,  # should the plot be in XKCD style or not
         )
 
