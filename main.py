@@ -96,12 +96,12 @@ def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
     lastfm_list = lastfm_df["track"].to_list()
 
     if print_sim_score:
-        similarity = ListSimilarity.compute_all(spotify_list, lastfm_list, rbo_p=0.9)
-        composite = ListSimilarity.composite_score(spotify_list, lastfm_list, rbo_p=0.9)
-        for metric, score in similarity.items():
+        similarity = ListSimilarity(spotify_list, lastfm_list, lazy_compute=False)
+        for metric, score in similarity.metrics.items():
             print(f"{metric}: {score:.3f}")
 
-        print(f"\nComposite Score: {composite:.3f}")
+        composite = similarity.composite_score()
+        print(f"\nComposite Score: {round(100 * composite)}%")
 
     if print_diff:
         print_diffs(spotify_list, lastfm_list)
