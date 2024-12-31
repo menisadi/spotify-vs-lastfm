@@ -1,8 +1,10 @@
 import argparse
 from string import capwords
 import pandas as pd
-import compare
+from compare import ListSimilarity
 import plots
+
+# from rich import Console
 
 
 def standardize_title(title: str) -> str:
@@ -94,8 +96,12 @@ def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
     lastfm_list = lastfm_df["track"].to_list()
 
     if print_sim_score:
-        similarity = compare.rbo(spotify_list, lastfm_list, p=0.9)
-        print(f"RBO Similarity: {similarity:.3f}\n")
+        similarity = ListSimilarity.compute_all(spotify_list, lastfm_list, rbo_p=0.9)
+        composite = ListSimilarity.composite_score(spotify_list, lastfm_list, rbo_p=0.9)
+        for metric, score in similarity.items():
+            print(f"{metric}: {score:.3f}")
+
+        print(f"\nComposite Score: {composite:.3f}")
 
     if print_diff:
         print_diffs(spotify_list, lastfm_list)
