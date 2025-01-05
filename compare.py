@@ -44,6 +44,33 @@ class ListSimilarity:
         if self.metrics is None:
             self.metrics = self._compute_all()
 
+    def edit_distance_swaps(self):
+        # Align sequences
+        aligned_seq1 = self.list1 + [x for x in self.list2 if x not in self.list1]
+        aligned_seq2 = self.list2 + [x for x in self.list1 if x not in self.list2]
+
+        target_index = {val: idx for idx, val in enumerate(aligned_seq2)}
+
+        swaps = 0
+        visited = [False] * len(aligned_seq1)
+
+        for i in range(len(aligned_seq1)):
+            if visited[i] or aligned_seq1[i] == aligned_seq2[i]:
+                continue
+
+            # Detect cycles in the permutation
+            cycle_size = 0
+            x = i
+            while not visited[x]:
+                visited[x] = True
+                x = target_index[aligned_seq1[x]]
+                cycle_size += 1
+
+            if cycle_size > 1:
+                swaps += cycle_size - 1
+
+        return swaps
+
     # FIX: this one isn't working properly. There are libraries which can be used instead of implementing by myself.
     def rank_based_edit_distance(self, base_weights=None):
         """
