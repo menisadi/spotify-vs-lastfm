@@ -30,7 +30,7 @@ class ListSimilarity:
         return {
             "edit_distance": self.edit_distance(),
             "edit_distance_normalized": self.edit_distance_normalized(),
-            # "rank_based_edit_distance": self.rank_based_edit_distance(),
+            "bubblesort_distance": self.bubblesort_distance(),
             "kendall_tau": self.kendall_tau_distance(),
             "spearman_correlation": self.spearman_correlation(),
             "jaccard_similarity": self.jaccard_similarity(),
@@ -44,113 +44,32 @@ class ListSimilarity:
         if self.metrics is None:
             self.metrics = self._compute_all()
 
-    def edit_distance_swaps(self):
+    def bubblesort_distance(self) -> float:
+        """
+        Calculate the normalized bubblesort distance between two lists.
+
+        The bubblesort distance is the minimum number of adjacent swaps needed
+        to transform one list into another (after aligning the lists). It is calculated using the Kendall Tau
+        correlation coefficient, as the Kendall tau distance is known to be equivalent to the bubblesort distance.
+
+        Returns:
+            float: The bubblesort distance between the two lists.
+
+        Raises:
+            ValueError: If the alignment of the lists fails.
+        """
         # Align sequences
         aligned_seq1 = self.list1 + [x for x in self.list2 if x not in self.list1]
         aligned_seq2 = self.list2 + [x for x in self.list1 if x not in self.list2]
 
-        target_index = {val: idx for idx, val in enumerate(aligned_seq2)}
+        n = len(aligned_seq1)
+        if n != len(aligned_seq2):
+            raise ValueError("Alignment of lists got messed up")
 
-        swaps = 0
-        visited = [False] * len(aligned_seq1)
+        kt_corr, _ = kendalltau(aligned_seq1, aligned_seq2)
 
-        for i in range(len(aligned_seq1)):
-            if visited[i] or aligned_seq1[i] == aligned_seq2[i]:
-                continue
-
-            # Detect cycles in the permutation
-            cycle_size = 0
-            x = i
-            while not visited[x]:
-                visited[x] = True
-                x = target_index[aligned_seq1[x]]
-                cycle_size += 1
-
-            if cycle_size > 1:
-                swaps += cycle_size - 1
-
-        return swaps
-
-    # FIX: this one isn't working properly. There are libraries which can be used instead of implementing by myself.
-    def rank_based_edit_distance(self, base_weights=None):
-        """
-        Compute a rank-based weighted edit distance between two lists.
-        Missing items are treated as if they are at the bottom of the other list.
-
-        Parameters:
-            base_weights: Base weights for operations:
-                          {'insertion': float, 'deletion': float,
-                           'substitution': float, 'transposition': float}
-        Returns:
-            Rank-based weighted edit distance.
-        """
-        if base_weights is None:
-            base_weight = 1
-            base_weights = {
-                "insertion": base_weight * len(self.list1),
-                "deletion": base_weight * len(self.list1),
-                "substitution": 2 * base_weight * len(self.list1),
-                "transposition": base_weight,
-            }
-
-        n, m = len(self.list1), len(self.list2)
-        dp = [[float("inf")] * (m + 1) for _ in range(n + 1)]
-        dp[0][0] = 0
-
-        # Map items to ranks
-        rank1 = {item: i for i, item in enumerate(self.list1)}
-        rank2 = {item: i for i, item in enumerate(self.list2)}
-        max_rank1, max_rank2 = n, m
-
-        # Initialize base cases
-        for i in range(1, n + 1):
-            dp[i][0] = dp[i - 1][0] + base_weights["deletion"] * (max_rank2)
-        for j in range(1, m + 1):
-            dp[0][j] = dp[0][j - 1] + base_weights["insertion"] * (max_rank1)
-
-        # Fill the DP table
-        for i in range(1, n + 1):
-            for j in range(1, m + 1):
-                rank_a = rank1.get(
-                    self.list1[i - 1], max_rank2
-                )  # Rank in list2 if missing
-                rank_b = rank2.get(
-                    self.list2[j - 1], max_rank1
-                )  # Rank in list1 if missing
-
-                if (
-                    self.list1[i - 1] == self.list2[j - 1]
-                ):  # No cost if items are the same
-                    dp[i][j] = dp[i - 1][j - 1]
-                else:
-                    # Substitution
-                    dp[i][j] = dp[i - 1][j - 1] + base_weights["substitution"] * abs(
-                        rank_a - rank_b
-                    )
-
-                # Insertion
-                dp[i][j] = min(
-                    dp[i][j], dp[i][j - 1] + base_weights["insertion"] * rank_b
-                )
-                # Deletion
-                dp[i][j] = min(
-                    dp[i][j], dp[i - 1][j] + base_weights["deletion"] * rank_a
-                )
-
-                # Transposition (swap adjacent elements)
-                if (
-                    i > 1
-                    and j > 1
-                    and self.list1[i - 1] == self.list2[j - 2]
-                    and self.list1[i - 2] == self.list2[j - 1]
-                ):
-                    dp[i][j] = min(
-                        dp[i][j],
-                        dp[i - 2][j - 2]
-                        + base_weights["transposition"] * abs(rank_a - rank_b),
-                    )
-
-        return dp[n][m]
+        # return n * (n - 1) * (1 - kt_corr) / 4
+        return (1 - kt_corr) / 2
 
     def edit_distance(self):
         """
