@@ -4,8 +4,6 @@ import pandas as pd
 from compare import ListSimilarity
 import plots
 
-# from rich import Console
-
 
 def standardize_title(title: str) -> str:
     """Convert a track title to standard title case format."""
@@ -87,16 +85,23 @@ def print_diffs_old(spotify_list, lastfm_list):
             print(f"{song} (index: {lastfm_list.index(song)})")
 
 
-def main(print_sim_score=True, print_diff=False, plot_top_chart=False):
-    spotify_path = "./data/spotify.csv"
-    lastfm_path = "./data/lastfm.csv"
+def main(
+    spotify_path="./data/spotify.csv",
+    lastfm_path="./data/lastfm.csv",
+    print_sim_score=True,
+    print_diff=False,
+    plot_top_chart=False,
+    rbo_p=0.9,
+):
     spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
 
     spotify_list = spotify_df["track"].to_list()
     lastfm_list = lastfm_df["track"].to_list()
 
     if print_sim_score:
-        similarity = ListSimilarity(spotify_list, lastfm_list, lazy_compute=False)
+        similarity = ListSimilarity(
+            spotify_list, lastfm_list, rbo_p=rbo_p, lazy_compute=False
+        )
         for metric, score in similarity.metrics.items():
             print(f"{metric}: {score:.3f}")
 
@@ -123,6 +128,18 @@ if __name__ == "__main__":
         description="Compare Spotify and Last.FM playlists"
     )
     parser.add_argument(
+        "--spotify",
+        type=str,
+        default="./data/spotify.csv",
+        help="path to Spotify CSV file (default: ./data/spotify.csv)",
+    )
+    parser.add_argument(
+        "--lastfm",
+        type=str,
+        default="./data/lastfm.csv",
+        help="path to Last.FM CSV file (default: ./data/lastfm.csv)",
+    )
+    parser.add_argument(
         "--no-sim",
         action="store_false",
         dest="print_sim_score",
@@ -140,10 +157,19 @@ if __name__ == "__main__":
         dest="plot_top_chart",
         help="generate connection graph visualization",
     )
+    parser.add_argument(
+        "--rbo-p",
+        type=float,
+        default=0.9,
+        help="RBO similarity parameter p (default: 0.9)",
+    )
     args = parser.parse_args()
 
     main(
+        spotify_path=args.spotify,
+        lastfm_path=args.lastfm,
         print_sim_score=args.print_sim_score,
         print_diff=args.print_diff,
         plot_top_chart=args.plot_top_chart,
+        rbo_p=args.rbo_p,
     )
