@@ -10,11 +10,9 @@ def standardize_title(title: str) -> str:
     return capwords(title.strip())
 
 
-def read_lists(
-    spotify_path: str, lastfm_path: str
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    sdf = pd.read_csv(spotify_path)
-    ldf = pd.read_csv(lastfm_path)
+def read_lists(first_path: str, second_path: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    sdf = pd.read_csv(first_path)
+    ldf = pd.read_csv(second_path)
 
     sdf["track"] = sdf["track"].apply(standardize_title)
     ldf["track"] = ldf["track"].apply(standardize_title)
@@ -28,79 +26,91 @@ def filter_alphanumeric(input_string):
     return "".join(char for char in input_string if char.isalnum())
 
 
-def fix_names(spotify_df, lastfm_df):
-    spotify_df["stripped_track"] = spotify_df["track"].apply(filter_alphanumeric)
-    lastfm_df["stripped_track"] = lastfm_df["track"].apply(filter_alphanumeric)
+def fix_names(first_df, second_df):
+    first_df["stripped_track"] = first_df["track"].apply(filter_alphanumeric)
+    second_df["stripped_track"] = second_df["track"].apply(filter_alphanumeric)
 
     convert_dict = (
-        lastfm_df[["track", "stripped_track"]]
+        second_df[["track", "stripped_track"]]
         .merge(
-            spotify_df[["track", "stripped_track"]],
+            first_df[["track", "stripped_track"]],
             on="stripped_track",
-            suffixes=("_last", "_spot"),
+            suffixes=("_second", "_first"),
         )
         .drop("stripped_track", axis=1)
-        .set_index("track_last")
-        .to_dict()["track_spot"]
+        .set_index("track_second")
+        .to_dict()["track_first"]
     )
 
-    lastfm_df["track"] = lastfm_df["track"].replace(convert_dict)
+    second_df["track"] = second_df["track"].replace(convert_dict)
 
-    return spotify_df, lastfm_df
+    return first_df, second_df
 
 
-def print_diffs(spotify_list, lastfm_list):
-    spotify_only = set(spotify_list) - set(lastfm_list)
-    lastfm_only = set(lastfm_list) - set(spotify_list)
+def print_diffs(
+    first_list,
+    second_list,
+    first_name: str = "First List",
+    second_name: str = "Second List",
+):
+    first_only = set(first_list) - set(second_list)
+    second_only = set(second_list) - set(first_list)
 
-    spotify_only_list = [song for song in spotify_list if song in spotify_only]
-    lastfm_only_list = [song for song in lastfm_list if song in lastfm_only]
+    first_only_list = [song for song in first_list if song in first_only]
+    second_only_list = [song for song in second_list if song in second_only]
 
-    max_length = max(len(spotify_only_list), len(lastfm_only_list))
+    max_length = max(len(first_only_list), len(second_only_list))
 
     # Extend shorter list with empty strings to align columns
-    spotify_only_list += [""] * (max_length - len(spotify_only_list))
-    lastfm_only_list += [""] * (max_length - len(lastfm_only_list))
+    first_only_list += [""] * (max_length - len(first_only_list))
+    second_only_list += [""] * (max_length - len(second_only_list))
 
-    print(f"{'Spotify Only':<40} {'Last.FM Only'}")
+    print(f"{first_name:<40} {second_name}")
     print("-" * 80)
 
-    for spotify_song, lastfm_song in zip(spotify_only_list, lastfm_only_list):
-        print(f"{spotify_song:<40} {lastfm_song}")
+    for first_song, second_song in zip(first_only_list, second_only_list):
+        print(f"{first_song:<40} {second_song}")
 
 
-def print_diffs_old(spotify_list, lastfm_list):
-    spotify_only = set(spotify_list) - set(lastfm_list)
-    print("Songs only in Spotify:")
-    for song in spotify_list:
-        if song in spotify_only:
-            print(f"{song} (index: {spotify_list.index(song)})")
+def print_diffs_old(
+    first_list,
+    second_list,
+    first_name: str = "First List",
+    second_name: str = "Second List",
+):
+    first_only = set(first_list) - set(second_list)
+    print(f"Songs only in {first_name}:")
+    for song in first_list:
+        if song in first_only:
+            print(f"{song} (index: {first_list.index(song)})")
 
     print()
 
-    lastfm_only = set(lastfm_list) - set(spotify_list)
-    print("Songs only in Last.FM:")
-    for song in lastfm_list:
-        if song in lastfm_only:
-            print(f"{song} (index: {lastfm_list.index(song)})")
+    second_only = set(second_list) - set(first_list)
+    print(f"Songs only in {second_name}:")
+    for song in second_list:
+        if song in second_only:
+            print(f"{song} (index: {second_list.index(song)})")
 
 
 def main(
-    spotify_path="./data/spotify.csv",
-    lastfm_path="./data/lastfm.csv",
+    first_path,
+    second_path,
+    first_title="First List",
+    second_title="Second List",
     print_sim_score=True,
     print_diff=False,
     plot_top_chart=False,
     rbo_p=0.9,
 ):
-    spotify_df, lastfm_df = read_lists(spotify_path, lastfm_path)
+    first_df, second_df = read_lists(first_path, second_path)
 
-    spotify_list = spotify_df["track"].to_list()
-    lastfm_list = lastfm_df["track"].to_list()
+    first_list = first_df["track"].to_list()
+    second_list = second_df["track"].to_list()
 
     if print_sim_score:
         similarity = ListSimilarity(
-            spotify_list, lastfm_list, rbo_p=rbo_p, lazy_compute=False
+            first_list, second_list, rbo_p=rbo_p, lazy_compute=False
         )
         for metric, score in similarity.metrics.items():
             print(f"{metric}: {score:.3f}")
@@ -109,15 +119,17 @@ def main(
         print(f"\nComposite Score: {round(100 * composite)}%")
 
     if print_diff:
-        print_diffs(spotify_list, lastfm_list)
+        print_diffs(
+            first_list, second_list, first_name=first_title, second_name=second_title
+        )
 
     if plot_top_chart:
         plots.connection_graph(
-            spotify_list,
-            lastfm_list,
+            first_list,
+            second_list,
             top_k=20,
-            list1_title="Spotify",
-            list2_title="Last.FM",
+            list1_title=first_title,
+            list2_title=second_title,
             main_title="Top Tracks According to\n\n",
             xkcd=False,  # should the plot be in XKCD style or not
         )
@@ -125,19 +137,33 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Compare Spotify and Last.FM playlists"
+        description="""""
+        Comparing two lists (from csv source for now).
+        Used for now to com to compare track from lists of top-tracks, from different sources."""
+    )  # TODO: allow for txt input
+    parser.add_argument(
+        "-f",
+        "--first",
+        type=str,
+        help="path to first CSV file",
     )
     parser.add_argument(
-        "--spotify",
+        "-s",
+        "--second",
         type=str,
-        default="./data/spotify.csv",
-        help="path to Spotify CSV file (default: ./data/spotify.csv)",
+        help="path to second CSV file",
     )
     parser.add_argument(
-        "--lastfm",
+        "-t",
+        "--first-title",
         type=str,
-        default="./data/lastfm.csv",
-        help="path to Last.FM CSV file (default: ./data/lastfm.csv)",
+        help="title for the first list",
+    )
+    parser.add_argument(
+        "-y",
+        "--second-title",
+        type=str,
+        help="title for the second list",
     )
     parser.add_argument(
         "--no-sim",
@@ -166,8 +192,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(
-        spotify_path=args.spotify,
-        lastfm_path=args.lastfm,
+        first_path=args.first,
+        second_path=args.second,
+        first_title=args.first_title,
+        second_title=args.second_title,
         print_sim_score=args.print_sim_score,
         print_diff=args.print_diff,
         plot_top_chart=args.plot_top_chart,

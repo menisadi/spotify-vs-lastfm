@@ -1,61 +1,77 @@
-# Playlist Similarity Tool
+# Spotify vs Last.fm Playlist Analyzer
 
-This tool compares two playlists from different sources (e.g., Spotify and Last.fm) and calculates their similarity. Currently, it uses the Rank-Biased Overlap (RBO) method for comparison, with plans to incorporate additional comparison methods in the future.
+This project allows you to compare top songs from two different sources, such as Spotify Wrapped and Last.fm scrobbling data. It calculates similarity metrics, highlights differences, and visualizes connections between the playlists.
 
 ## Features
-- **Compare playlists:** Reads playlist data from CSV files and calculates similarity between two lists of tracks.
-- **Current similarity metric:** Rank-Biased Overlap (RBO) with customizable parameters.
-- **Extensible design:** Plans to add more comparison methods in future updates.
 
-## Requirements
-- Python 3.10 or higher
-- `pandas` library
-- A `compare` module with an `rbo` function (used for RBO similarity calculation)
+- **Similarity Metrics**:
+  - Edit Distance (absolute and normalized)
+  - Jaccard Similarity
+  - Rank-Biased Overlap (RBO)
+  - Kendall Tau Distance
+  - Spearman Correlation
+  - Composite Similarity Score
+- **Differences**: Identify songs unique to each playlist.
+- **Visualization**: Generate connection graphs to show overlap and differences in ranked top tracks.
 
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/playlist-similarity-tool.git
-   cd playlist-similarity-tool
-   ```
-2. Install the required libraries:
-   ```bash
-   pip install pandas
-   ```
+## Getting Started
 
-## Usage
-1. Prepare your data:
-   - Save your playlists as CSV files with a column named `track` containing track names.
-   - Example file structure:
-     ```csv
-     track
-     Song A
-     Song B
-     Song C
-     ```
+### Prerequisites
 
-2. Run the script:
-   ```bash
-   python main.py
-   ```
+- Python 3.8 or higher
+- Required packages:
+  - `scipy`
+  - `editdistance`
+  - `matplotlib`
+  - `pandas`
 
-   By default, it reads playlists from `spotify.csv` and `lastfm.csv` in the same directory.
+Install dependencies with:
+```bash
+pip install -r requirements.txt
+```
 
-3. View the output:
-   The script calculates and displays the RBO similarity between the two playlists:
-   ```
-   RBO Similarity: 0.845
-   ```
+### Usage
 
-## Planned Features
-- Add more similarity metrics, such as:
-  - Jaccard similarity
-  - Cosine similarity
-  - Edit distance for track names
-- Include data visualization for similarity analysis (e.g., charts and plots).
+#### CLI Usage
+Run the script using the following command:
+```bash
+python main.py --first <path_to_first_csv> --second <path_to_second_csv>
+```
 
-## Contributing
-Feel free to contribute by submitting issues or pull requests. Future improvements and ideas are welcome!
+Additional options:
+- `--first-title`: Title for the first playlist.
+- `--second-title`: Title for the second playlist.
+- `--no-sim`: Disable similarity score output.
+- `--diff`: Show differences between playlists.
+- `--plot`: Generate a connection graph visualization.
+- `--rbo-p`: Set the RBO similarity parameter (default: 0.9).
+
+#### CSV Format
+Input CSV files must have a `track` column containing the track names. Other columns will be ignored.
+
+#### Example
+To compare two playlists with visualization:
+```bash
+python main.py --first spotify_top.csv --second lastfm_top.csv --plot
+```
+
+### Code Structure
+- **`compare.py`**: Contains the `ListSimilarity` class for computing metrics and scores.
+- **`main.py`**: CLI interface for data input, processing, and analysis.
+- **`plots.py`**: Functions for creating visualizations, such as connection graphs.
+
+### Outputs
+1. **Similarity Scores**: Various metrics and a composite score.
+2. **Differences**: A side-by-side list of unique tracks.
+3. **Connection Graphs**: Visual depiction of similarities and differences.
+
+## Future Enhancements
+- Support for `.txt` inputs.
+- Enhanced matching for tracks with minor discrepancies in titles.
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
+Contributions and feedback are welcome!
