@@ -1,0 +1,28 @@
+# Spotify Wrapped Was Off - But By How Much?
+
+- Background
+    - Spotify Wrapped
+    - The claims online
+    - My personal suspicion about the accuracy
+- Last.FM
+    - What is it?
+    - Fetching the _raw_ data
+    - My new "Top 100" songs
+    - Side Note: Fetching my top 2024 songs according to Spotify
+    - Visualizing the two lists side by side
+- How different are the lists?
+    - Visually
+    - Intuitive metric: Jaccard Similarity
+    - The stats head instinct: Spearman list correlation
+    - The ML flavored: Edit Distance
+    - Rethinking: Bubble-Sort Distance (and Kendall Tau)
+    - Niche Idea: RBO
+- Which metric makes more sense?
+- Computing all the above
+    - The raw results
+    - Context and Proportion: Comparing 'Best Movies Even' lists
+- Spotify raw data!
+    - Realization that this exists and sending a request
+    - Comparing top songs according to the raw data and the Wrapped list
+    - Computing the distances metrics for raw-vs-wrapped
+- Conclusion? Is there any?
