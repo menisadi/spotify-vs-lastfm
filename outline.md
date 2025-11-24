@@ -8,7 +8,7 @@
     - What is it?
     - Fetching the _raw_ data
     - My new "Top 100" songs
-    - Side Note: Fetching my top 2024 songs according to Spotify
+    - Side Note: Fetching my top 2024 songs according to Spotify (via the your top songs playlist)
     - Visualizing the two lists side by side
 - How different are the lists?
     - Visually
@@ -20,9 +20,8 @@
 - Which metric makes more sense?
 - Computing all the above
     - The raw results
-    - Context and Proportion: Comparing 'Best Movies Even' lists
 - Spotify raw data!
     - Realization that this exists and sending a request
     - Comparing top songs according to the raw data and the Wrapped list
-    - Computing the distances metrics for raw-vs-wrapped
+    - Computing the metrics for raw-vs-wrapped
 - Conclusion? Is there any?
