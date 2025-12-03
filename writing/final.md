@@ -110,6 +110,14 @@ But it might be a matter of taste.
 Anyway, the results point to the fact that the top is quite similar but just quite.
 As we keep going down the list the discrepancies seems to get larger, or maybe just some songs "fall off" out of one of the top-100 but not the other.
 
+## Putting all the scores in some context
+
+### Creating mock data
+
+### Visual comparisons
+
+### Table comparison
+
 ## Spotify raw data!
 
 ### Realization that this exists and sending a request
