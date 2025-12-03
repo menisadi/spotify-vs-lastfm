@@ -114,7 +114,30 @@ As we keep going down the list the discrepancies seems to get larger, or maybe j
 
 ### Creating mock data
 
-### Visual comparisons
+I found it hard to make sense of all those numbers. Is 0.52 high? Is it low? What about 0.88?
+In order to put those number in prespective I created 3 mock-lists to compare:
+1. Shuffled - My Spotify list randomly shuffled
+2. Swapped - My Spotify list when every two adajcent songs got swapped
+3. Fake - Dummy list with entries such as "Song 1" by "Artist 1"
+
+First let's look at those visually.
+![four-plots](add-image)
+
+I feels sensible to say that the "Fake" one is our "worst cast". The "Shuffled" is really bad even though it contains all my top-100 songs and the swapped is actually quite OK, even good.
+Armed with this I ran the same comparisons as above and aggregated them all into one nice table:
+
+| target | edit distance | edit distance (norm) | bubblesort distance | kendall tau | spearman | jaccard | rbo | composite score |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Last.fm | 88 | 0.88 | 0.21 | 0.58 | -0.2 | 0.64 | 0.65 | 0.48 |
+| Shuffeled | 99 | 0.99 | 0.49 | 0.03 | 0.04 | 1.0 | 0.08 | 0.34 |
+| Swapped | 51 | 0.51 | 0.01 | 0.98 | 0.999 | 1.0 | 0.84 | 0.9 |
+| Fake | 100 | 1.0 | 0.5 | -0.01 | -0.86 | 0.0 | 0.0 | 0.0 |
+
+I guess we can that my Last.fm data sits somewhere between the “Swapped” (very similar) and “Shuffled” (very different) baselines, but noticeably closer to Shuffled than I expected.
+Note: the composite score I built isn’t meant to be a canonical metric, but it’s a sanity check that captures the general magnitude of difference across all methods.
+Here, Last.fm’s composite score (0.48) is far from the near-perfect “Swapped” scenario (0.90), and much closer to the chaotic “Shuffled” case (0.34).
+In other words: there is a serious gap between Spotify's list and Last.fm's list.
+It’s not "total randomness," but it’s also not "a few mistakes."
 
 ### Table comparison
 
