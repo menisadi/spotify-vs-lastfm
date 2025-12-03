@@ -64,6 +64,7 @@ Flags:
 - `--first`: Reference CSV with a `track` column.
 - `--seconds`: One or more CSVs to compare against the reference.
 - `--rbo-p`: Optional RBO similarity parameter (default: 0.9).
+- `--out-csv`: Optional path to save the metrics table to CSV.
 
 ### Code Structure
 - **`compare.py`**: Contains the `ListSimilarity` class for computing metrics and scores.

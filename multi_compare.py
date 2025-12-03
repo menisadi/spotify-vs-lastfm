@@ -6,6 +6,20 @@ from compare import ListSimilarity
 from main import read_lists
 
 
+COLUMNS = [
+    ("second", "Target"),
+    ("edit_distance", "Edit"),
+    ("edit_distance_normalized", "Edit (norm)"),
+    ("bubblesort_distance", "Bubblesort"),
+    ("kendall_tau", "Kendall"),
+    ("spearman_correlation", "Spearman"),
+    ("jaccard_similarity", "Jaccard"),
+    ("rbo", "RBO"),
+    ("composite_score", "Composite"),
+    ("composite_percent", "Composite %"),
+]
+
+
 def compare_pair(first_path: str, second_path: str, rbo_p: float) -> dict:
     first_df, second_df = read_lists(first_path, second_path)
 
@@ -23,41 +37,47 @@ def compare_pair(first_path: str, second_path: str, rbo_p: float) -> dict:
 
 
 def format_table(results: list[dict]) -> str:
-    column_order = [
-        "second",
-        "edit_distance",
-        "edit_distance_normalized",
-        "bubblesort_distance",
-        "kendall_tau",
-        "spearman_correlation",
-        "jaccard_similarity",
-        "rbo",
-        "composite_score",
-        "composite_percent",
-    ]
+    def format_value(key: str, value: float | str) -> str:
+        if pd.isna(value):
+            return "-"
+        if key == "second":
+            return str(value)
+        if key == "edit_distance":
+            return f"{int(value)}"
+        if key == "composite_percent":
+            return f"{value:.0f}%"
+        return f"{value:.3f}"
 
-    frame = pd.DataFrame(results)
-    frame = frame[column_order]
+    rows: list[list[str]] = []
+    for entry in results:
+        rows.append([format_value(key, entry.get(key)) for key, _ in COLUMNS])
 
-    def fmt_float(value: float) -> str:
-        return "-" if pd.isna(value) else f"{value:.3f}"
+    col_widths = []
+    for idx, (_, header) in enumerate(COLUMNS):
+        max_row_width = max((len(row[idx]) for row in rows), default=0)
+        col_widths.append(max(len(header), max_row_width))
 
-    formatters = {
-        "edit_distance": lambda v: "-" if pd.isna(v) else f"{int(v)}",
-        "edit_distance_normalized": fmt_float,
-        "bubblesort_distance": fmt_float,
-        "kendall_tau": fmt_float,
-        "spearman_correlation": fmt_float,
-        "jaccard_similarity": fmt_float,
-        "rbo": fmt_float,
-        "composite_score": fmt_float,
-        "composite_percent": lambda v: "-" if pd.isna(v) else f"{v:.0f}%",
-    }
+    header_line = " | ".join(
+        (header.ljust(col_widths[idx]) if idx == 0 else header.rjust(col_widths[idx]))
+        for idx, (_, header) in enumerate(COLUMNS)
+    )
+    separator = "-+-".join("-" * width for width in col_widths)
 
-    return frame.to_string(index=False, formatters=formatters)
+    body_lines = []
+    for row in rows:
+        body_lines.append(
+            " | ".join(
+                row[idx].ljust(col_widths[idx])
+                if idx == 0
+                else row[idx].rjust(col_widths[idx])
+                for idx in range(len(COLUMNS))
+            )
+        )
+
+    return "\n".join([header_line, separator, *body_lines])
 
 
-def main(first: str, seconds: list[str], rbo_p: float) -> None:
+def main(first: str, seconds: list[str], rbo_p: float, csv_path: str | None) -> None:
     results = []
     for second_path in seconds:
         comparison = compare_pair(first, second_path, rbo_p=rbo_p)
@@ -65,6 +85,12 @@ def main(first: str, seconds: list[str], rbo_p: float) -> None:
         results.append(comparison)
 
     print(format_table(results))
+
+    if csv_path:
+        frame = pd.DataFrame(results)
+        frame = frame[[key for key, _ in COLUMNS]]
+        frame.to_csv(csv_path, index=False)
+        print(f"\nSaved CSV to {csv_path}")
 
 
 if __name__ == "__main__":
@@ -90,6 +116,11 @@ if __name__ == "__main__":
         default=0.9,
         help="RBO similarity parameter p (default: 0.9)",
     )
+    parser.add_argument(
+        "--out-csv",
+        dest="out_csv",
+        help="Optional path to save the comparison table as CSV",
+    )
     args = parser.parse_args()
 
-    main(first=args.first, seconds=args.seconds, rbo_p=args.rbo_p)
+    main(first=args.first, seconds=args.seconds, rbo_p=args.rbo_p, csv_path=args.out_csv)
