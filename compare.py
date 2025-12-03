@@ -44,31 +44,38 @@ class ListSimilarity:
         if self.metrics is None:
             self.metrics = self._compute_all()
 
+    def _aligned_ranks(self) -> tuple[list[int], list[int]]:
+        """
+        Build aligned rank vectors over the union of items.
+
+        Items appear in the order of list1 first, then any unseen items from list2.
+        Missing items in each list get unique tail ranks so there are no ties.
+        """
+
+        def ranks(primary: list, secondary: list, universe: list) -> list[int]:
+            base = {item: idx for idx, item in enumerate(primary)}
+            tail_start = len(primary)
+            for offset, item in enumerate(x for x in secondary if x not in base):
+                base[item] = tail_start + offset
+            return [base[item] for item in universe]
+
+        universe = list(dict.fromkeys([*self.list1, *self.list2]))
+        return (
+            ranks(self.list1, self.list2, universe),
+            ranks(self.list2, self.list1, universe),
+        )
+
     def bubblesort_distance(self) -> float:
         """
         Calculate the normalized bubblesort distance between two lists.
 
-        The bubblesort distance is the minimum number of adjacent swaps needed
-        to transform one list into another (after aligning the lists). It is calculated using the Kendall Tau
-        correlation coefficient, as the Kendall tau distance is known to be equivalent to the bubblesort distance.
-
-        Returns:
-            float: The bubblesort distance between the two lists.
-
-        Raises:
-            ValueError: If the alignment of the lists fails.
+        Uses Kendall Tau on aligned rank vectors; missing items are treated as
+        appearing after known items in the list where they are absent.
         """
-        # Align sequences
-        aligned_seq1 = self.list1 + [x for x in self.list2 if x not in self.list1]
-        aligned_seq2 = self.list2 + [x for x in self.list1 if x not in self.list2]
-
-        n = len(aligned_seq1)
-        if n != len(aligned_seq2):
-            raise ValueError("Alignment of lists got messed up")
-
-        kt_corr, _ = kendalltau(aligned_seq1, aligned_seq2)
-
-        # return n * (n - 1) * (1 - kt_corr) / 4
+        ranks1, ranks2 = self._aligned_ranks()
+        kt_corr, _ = kendalltau(ranks1, ranks2)
+        if kt_corr is None:
+            return 0.0
         return (1 - kt_corr) / 2
 
     def edit_distance(self):
@@ -89,13 +96,9 @@ class ListSimilarity:
         """
         Compute Kendall Tau distance between two lists.
         """
-        rank1 = {item: i for i, item in enumerate(self.list1)}
-        rank2 = {item: i for i, item in enumerate(self.list2)}
-        common_items = set(self.list1) | set(self.list2)
-        ranks1 = [rank1.get(item, -1) for item in common_items]
-        ranks2 = [rank2.get(item, -1) for item in common_items]
+        ranks1, ranks2 = self._aligned_ranks()
         tau, _ = kendalltau(ranks1, ranks2)
-        return tau
+        return 0.0 if tau is None else tau
 
     def spearman_correlation(self) -> float:
         """
