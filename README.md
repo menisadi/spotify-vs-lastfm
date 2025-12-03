@@ -55,9 +55,20 @@ To compare two playlists with visualization:
 python main.py --first spotify_top.csv --second lastfm_top.csv --plot
 ```
 
+#### Compare Against Multiple Playlists
+Use `multi_compare.py` to compare one reference list against several targets (no plotting):
+```bash
+python multi_compare.py --first spotify_top.csv --seconds lastfm_top.csv apple_top.csv yt_music.csv
+```
+Flags:
+- `--first`: Reference CSV with a `track` column.
+- `--seconds`: One or more CSVs to compare against the reference.
+- `--rbo-p`: Optional RBO similarity parameter (default: 0.9).
+
 ### Code Structure
 - **`compare.py`**: Contains the `ListSimilarity` class for computing metrics and scores.
 - **`main.py`**: CLI interface for data input, processing, and analysis.
+- **`multi_compare.py`**: Compare one list to many and print a table of metrics.
 - **`plots.py`**: Functions for creating visualizations, such as connection graphs.
 
 ### Outputs
