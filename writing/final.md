@@ -124,6 +124,8 @@ First let's look at those visually.
 ![four-plots](add-image)
 
 I feels sensible to say that the "Fake" one is our "worst cast". The "Shuffled" is really bad even though it contains all my top-100 songs and the swapped is actually quite OK, even good.
+
+### Comparison Table
 Armed with this I ran the same comparisons as above and aggregated them all into one nice table:
 
 | target | edit distance | edit distance (norm) | bubblesort distance | kendall tau | spearman | jaccard | rbo | composite score |
@@ -139,15 +141,64 @@ Here, Last.fm’s composite score (0.48) is far from the near-perfect “Swapped
 In other words: there is a serious gap between Spotify's list and Last.fm's list.
 It’s not "total randomness," but it’s also not "a few mistakes."
 
-### Table comparison
-
 ## Spotify raw data!
 
 ### Realization that this exists and sending a request
 
+At some point in this rabbit hole I had a very simple thought:
+
+> “Wait… Spotify *must* have the real numbers. Can’t I just… ask for them?”
+
+Turns out: yes, you actually can.
+
+Hidden behind a few menus in your account settings is a privacy / data section where you can request a full export of your Spotify data. Among other things (login logs, account info, etc.), you can ask for your extended streaming history – basically a raw log of what you listened to, when, and for how long.
+
+So I sent the request, forgot about it, and a few days later an email showed up with a link to a zip file.
+
+Inside the archive were several JSON files with names like:
+
+* `Streaming_History_Audio_2024_0.json`
+* `Streaming_History_Audio_2024_1.json`
+
+At last the source of truth: every play, every skip, every late-night loop of “Sunset” is in there.
+
+To make this comparable to Wrapped, I did a few basic cleanup steps, aggregated play counts for each track and filtered the top 100.
+From that, I built Spotify Raw Top 100.
+
 ### Comparing top songs according to the raw data and the Wrapped list
+
+Once I had the raw-based top-100 list, I put it side-by-side with the Wrapped playlist.
+
+![spotify-vs-spotify](add-plot)
+
+Long story short - there are not the same.
+Subjectively, the raw top-20 felt much more like “yes, this is my year in music.”
+
+That’s the qualitative side. Now, let’s look at the numbers.
 
 ### Computing the metrics for raw-vs-wrapped
 
+I ran exactly the same battery of metrics as before.
+Here is the updated table:
+
+| target      | edit distance | edit distance (norm) | bubblesort distance | kendall tau | spearman | jaccard | rbo  | composite score |
+| ----------- | ------------- | -------------------- | ------------------- | ----------- | -------- | ------- | ---- | --------------- |
+| **Last.fm** | 88            | 0.88                 | 0.21                | 0.58        | -0.20    | 0.64    | 0.65 | **0.48**        |
+| **Raw**     | 93            | 0.93                 | 0.17                | 0.67        | -0.21    | 0.70    | 0.61 | **0.46**        |
+| Shuffled    | 99            | 0.99                 | 0.49                | 0.03        | 0.04     | 1.00    | 0.08 | 0.34            |
+| Swapped     | 51            | 0.51                 | 0.01                | 0.98        | 0.999    | 1.00    | 0.84 | 0.90            |
+| Fake        | 100           | 1.00                 | 0.50                | -0.01       | -0.86    | 0.00    | 0.00 | 0.00            |
+
+### So where does Raw vs Wrapped actually land?
+
+**In one sentence:**
+**Spotify Wrapped disagrees with Spotify’s own raw listening logs almost exactly as much as it disagrees with Last.fm** — both sit around the same mid-range “not random, but not close enough” zone.*
+
 ## Conclusion? Is there any?
 
+I'm not sure I know what Spotify did and how come their numbers are such mismatch.
+Is this intentional?
+Is there a reason or a deliberate bias?
+I don't know and I have no indication that this is the case.
+I just know that the guys there are sitting on a huge gold mine of cool data and what they end up doing with it is this mess.
+It might not bother me as a user, but it offends me as a data-scientist.
