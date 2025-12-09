@@ -10,17 +10,17 @@ I'm not talking about the fact that "Baby Shark" made his way to my top songs,
 this one I can explain.
 I talking about this one song which you do listen to, but you are quite sure that not this much.
 Or a song you had on repeat and still didn't menage to crack your top-10 somehow.
-Last year [several](add-link) [claims](add-link) about the inaccuracy of the Spotify Wrapped rose on the media.
-For me it was ["Sunset"](add-link) by the talented Caroline Polachek which I just couldn't get enough,
+Last year [several](https://switchedonpop.com/episodes/breaking-through-doechii-mkgee-rose) [claims](https://www.musicradar.com/music-industry/streaming-sharing/spotify-says-they-got-your-wrapped-2024-wrong-but-this-year-theyre-going-to-fix-it) about the [inaccuracy](https://www.reddit.com/r/truespotify/comments/1h6fxdc/2024_spotify_wrapped_was_awful/) of the Spotify Wrapped rose on the media.
+For me it was ["Sunset"](https://open.spotify.com/track/203bhpOhWluOytYjvwQfl7?si=254130e627294591) by the talented Caroline Polachek which I just couldn't get enough,
 yet Spotify placed it on the modest no. 17.
-Meanwhile one spot below come ["Two Weeks"](add-link) by Grizzly Bear.
+Meanwhile one spot below come ["Two Weeks"](https://open.spotify.com/track/0iTpQYzJnYgh7kIxyq8A2O) by Grizzly Bear.
 Now, don't get me wrong, this is a great song which I did listen to but not *this much*.
 Faced with the mystery of my missing favorites,
 I turned to a tool that has quietly, faithfully tracked my listening habits for years: Last.FM.
 
 ### Last.FM
 
-For those unfamiliar, [Last.FM](add-link) is a music tracking service that "scrobbles", or records,
+For those unfamiliar, [Last.FM](https://www.last.fm/) is a music tracking service that "scrobbles", or records,
 every song you listen to across various platforms.
 It creates a detailed log of your music history, minute by minute, play by play.
 While it isn’t as flashy as Spotify Wrapped, it's built around the idea of precision and transparency.
@@ -37,7 +37,7 @@ I extracted the tracklist from this playlist and used it as the best available p
 With the two lists,Last.FM’s data and Spotify’s playlist, side-by-side,
 the discrepancies became immediately obvious.
 
-![visual-comarison](comparing.png)
+![visual-comarison](plots/spotvslast.png)
 
 As you can see my instincts where right regrading "Sunset".
 In general the two lists doesn't look unrelated but there are significant discrepancies.
@@ -50,7 +50,7 @@ What does "far" even mean in this context?
 ### Intuitive metric: Jaccard Similarity
 
 First, do the lists even talk about the same songs?
-[Jaccard Similarity](add-link) looks only at membership, not order: overlap / union.
+[Jaccard Similarity](https://en.wikipedia.org/wiki/Jaccard_index) looks only at membership, not order: overlap / union.
 When running this similarity test on my Spotify vs Last.fm data gives 0.639,
 meaning roughly 64% of the unique tracks appear on both lists.
 Good news: the playlists are not strangers, bad news: a third of the songs are unique to one source.
@@ -60,7 +60,7 @@ Placing 'sunset' outside my top-10 of the year really feels off and Jaccard does
 ### The stats head instinct: Spearman list correlation
 
 This is the statisticians immediate go-to tool for such analysis.
-[Spearman list correlation](add-link) asks: if I rank both lists, do the positions line up?
+[Spearman list correlation](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient) asks: if I rank both lists, do the positions line up?
 If we number the songs somehow, will the resulting lists of numbers up and down together,
 even if not at the same speed?
 Here it landed at -0.201.
@@ -71,26 +71,26 @@ It’s not a perfect inversion, but it shows order disagreements even among the 
 
 Anyone which ever dealt with some sort of natural language processing tasks (NLP) knows this one.
 Our lists are not words but we can pretend they are.
-If we treat each list as a sequence, [edit distance](add-lin) counts how many insert/delete/move operations it takes to morph one into the other.
+If we treat each list as a sequence, [edit distance](https://en.wikipedia.org/wiki/Edit_distance) counts how many insert/delete/move operations it takes to morph one into the other.
 The raw distance here is 88 (normalized 0.880 out of 1), which is high.
 Translation: if you start with Spotify's lists you’d be editing a lot to make its order look like Last.FM’s, so the sequencing disagreements are substantial.
 
 ### Rethinking: Bubble-Sort Distance (and Kendall Tau)
 
 If we keep this line of "how hard will we had to work to make one list look like the other" idea, we could replace the insert/delete/move operations of the Edit Distance into one action: "swap".
-[Bubble-Sort distance](add-link), based on the idea behind the famous [sorting algorithm](add-link), measures how many adjacent swaps you’d need to align the two orders.
+Bubble-Sort distance, based on the idea behind the famous [sorting algorithm](https://en.wikipedia.org/wiki/Bubble_sort), measures how many adjacent swaps you’d need to align the two orders.
 For me this feels more appropriate for comparison which deals mainly with ranking.
 Note that as there are songs which appear on one lists only, we can't get them by merely swapping, so I added a step on which we concatenated the missing songs to the end of the lists, one might argue that this isn't the perfect way of doing this but it was the most straight forward for me.
 After digging a bit online I realized that this metric have another name: Kendall Tau Distance.
-[Kendall Tau is Bubble-Sort Distance normalized](add-source).
-I then also realized that this distance have a 'correlation cousin': The Kendall Tau Correlation Coefficient, [which can be calculated by using a different normalization factor](add-source).
+[Kendall Tau is Bubble-Sort Distance normalized](https://en.wikipedia.org/wiki/Kendall_tau_distance).
+I then also realized that this distance have a 'correlation cousin': The Kendall Tau Correlation Coefficient, [which can be calculated by using a different normalization factor](https://en.wikipedia.org/wiki/Kendall_tau_distance#Comparison_to_Kendall_tau_rank_correlation_coefficient).
 Kendall Tau Correlation here is -0.089, almost neutral but slightly negative.
 The normalized bubble-sort distance is 0.521. So even if you only let yourself swap neighbors, you’d be doing about half the possible swaps to get alignment, still a messy reorder.
 
 ### Niche Idea: RBO
 
 While looking online about Kendall Tau I found a paper which mentioned a slightly different metric which I found interesting:
-[Rank-Biased Overlap (RBO)](add-link).
+[Rank-Biased Overlap (RBO)](https://github.com/changyaochen/rbo).
 This one is top-heavy by design, early positions count more and the influence decays with depth, using a 'decay factor' `p`.
 Using the default `p=0.9`, we get 0.654.
 That says the highest-ranked songs overlap more than the tail suggests.
@@ -120,8 +120,20 @@ In order to put those number in prespective I created 3 mock-lists to compare:
 2. Swapped - My Spotify list when every two adajcent songs got swapped
 3. Fake - Dummy list with entries such as "Song 1" by "Artist 1"
 
-First let's look at those visually.
-![four-plots](add-image)
+First let's pick at those visually.
+
+| #  | Spotify             | Swapped             | Shuffled                    | Fake     |
+|---:|:--------------------|:--------------------|:----------------------------|:---------|
+| 0  | Red Wine Supernova  | Bunny Is A Rider    | labour                      | Track 1  |
+| 1  | Bunny Is A Rider    | Red Wine Supernova  | Real Love Baby              | Track 2  |
+| 2  | Too Sweet           | CHIHIRO             | Ship To Wreck               | Track 3  |
+| 3  | CHIHIRO             | Too Sweet           | boys  bugs and men          | Track 4  |
+| 4  | Don't Blame Me      | God Needs The Devil | Vampire Empire              | Track 5  |
+| 5  | God Needs The Devil | Don't Blame Me      | Now I'm In It - Bonus Track | Track 6  |
+| 6  | Silk Chiffon        | BIRDS OF A FEATHER  | Oh Caroline                 | Track 7  |
+| 7  | BIRDS OF A FEATHER  | Silk Chiffon        | Two Weeks                   | Track 8  |
+| 8  | Sailor Song         | Ship To Wreck       | Blinding Lights             | Track 9  |
+| 9  | Ship To Wreck       | Sailor Song         | CHIHIRO                     | Track 10 |
 
 I feels sensible to say that the "Fake" one is our "worst cast". The "Shuffled" is really bad even though it contains all my top-100 songs and the swapped is actually quite OK, even good.
 
@@ -169,7 +181,7 @@ From that, I built Spotify Raw Top 100.
 
 Once I had the raw-based top-100 list, I put it side-by-side with the Wrapped playlist.
 
-![spotify-vs-spotify](add-plot)
+![spotify-vs-spotify](plots/spotvsspot.png)
 
 Long story short - there are not the same.
 Subjectively, the raw top-20 felt much more like “yes, this is my year in music.”
