@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
+import plots
 from compare import ListSimilarity
 from main import read_lists
 
@@ -20,7 +21,9 @@ COLUMNS = [
 ]
 
 
-def compare_pair(first_path: str, second_path: str, rbo_p: float) -> dict:
+def compare_pair(
+    first_path: str, second_path: str, rbo_p: float
+) -> tuple[dict, list[str], list[str]]:
     first_df, second_df = read_lists(first_path, second_path)
 
     first_list = first_df["track"].to_list()
@@ -33,7 +36,7 @@ def compare_pair(first_path: str, second_path: str, rbo_p: float) -> dict:
     metrics["composite_score"] = composite
     metrics["composite_percent"] = composite * 100
     metrics["second"] = str(second_path)
-    return metrics
+    return metrics, first_list, second_list
 
 
 def format_table(results: list[dict]) -> str:
@@ -77,12 +80,27 @@ def format_table(results: list[dict]) -> str:
     return "\n".join([header_line, separator, *body_lines])
 
 
-def main(first: str, seconds: list[str], rbo_p: float, csv_path: str | None) -> None:
+def main(
+    first: str,
+    seconds: list[str],
+    rbo_p: float,
+    csv_path: str | None,
+    plot: bool = False,
+    top_k: int = 50,
+) -> None:
     results = []
+    reference_list: list[str] | None = None
+    comparison_lists: list[tuple[str, list[str]]] = []
+
     for second_path in seconds:
-        comparison = compare_pair(first, second_path, rbo_p=rbo_p)
+        comparison, first_list, second_list = compare_pair(
+            first, second_path, rbo_p=rbo_p
+        )
         comparison["second"] = Path(second_path).name
         results.append(comparison)
+        comparison_lists.append((Path(second_path).name, second_list))
+        if reference_list is None:
+            reference_list = first_list
 
     print(format_table(results))
 
@@ -91,6 +109,13 @@ def main(first: str, seconds: list[str], rbo_p: float, csv_path: str | None) -> 
         frame = frame[[key for key, _ in COLUMNS]]
         frame.to_csv(csv_path, index=False)
         print(f"\nSaved CSV to {csv_path}")
+
+    if plot and reference_list:
+        plots.rank_alignment_matrix(
+            reference_list,
+            comparison_lists,
+            top_k=max(1, top_k),
+        )
 
 
 if __name__ == "__main__":
@@ -121,6 +146,24 @@ if __name__ == "__main__":
         dest="out_csv",
         help="Optional path to save the comparison table as CSV",
     )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Show a color-coded alignment plot for the comparisons",
+    )
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=50,
+        help="Number of rows to show in the plot (default: 50)",
+    )
     args = parser.parse_args()
 
-    main(first=args.first, seconds=args.seconds, rbo_p=args.rbo_p, csv_path=args.out_csv)
+    main(
+        first=args.first,
+        seconds=args.seconds,
+        rbo_p=args.rbo_p,
+        csv_path=args.out_csv,
+        plot=args.plot,
+        top_k=args.top_k,
+    )

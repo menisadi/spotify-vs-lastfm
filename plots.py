@@ -97,3 +97,104 @@ def connection_graph(
             ax.set_title(main_title, fontsize=14)
 
         plt.show()
+
+
+def rank_alignment_matrix(
+    reference: list[str],
+    comparisons: list[tuple[str, list[str]]],
+    top_k: int = 50,
+    missing_color: str = "#d9d9d9",
+):
+    """
+    Visualize how multiple ranked lists align against a reference list using colors.
+
+    Each comparison list is shown as a column, ordered by its own ranking. Cells are
+    colored by how far the item's position deviates from the reference list: green
+    means it appears in the same position, red means it is far away, and gray means
+    the item is not present in the reference at all.
+    """
+    if not comparisons:
+        return
+
+    columns = [("Reference", reference), *comparisons]
+    max_rows = min(top_k, max(len(lst) for _, lst in columns))
+    if max_rows == 0:
+        return
+
+    cmap = plt.get_cmap("RdYlGn_r")  # green at 0, red at 1
+    reference_positions = {name: idx for idx, name in enumerate(reference)}
+
+    cell_text: list[list[str]] = []
+    cell_colors: list[list[str | tuple[float, float, float, float]]] = []
+
+    for row_idx in range(max_rows):
+        text_row: list[str] = []
+        color_row: list[str | tuple[float, float, float, float]] = []
+        for col_idx, (label, items) in enumerate(columns):
+            if row_idx < len(items):
+                track = items[row_idx]
+                prefix = f"{row_idx + 1}. " if col_idx == 0 else ""
+                text_row.append(f"{prefix}{track}")
+            else:
+                track = ""
+                text_row.append("")
+
+            if col_idx == 0:
+                color_row.append("white")
+                continue
+
+            if not track:
+                color_row.append("white")
+                continue
+
+            ref_pos = reference_positions.get(track)
+            if ref_pos is None:
+                color_row.append(missing_color)
+                continue
+
+            diff = abs(ref_pos - row_idx)
+            denominator = max(len(reference) - 1, 1)
+            normalized = min(diff / denominator, 1.0)
+            color_row.append(cmap(normalized))
+        cell_text.append(text_row)
+        cell_colors.append(color_row)
+
+    fig_width = 3 + 2 * len(comparisons)
+    fig_height = 0.35 * max_rows + 2
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    ax.axis("off")
+
+    table = ax.table(
+        cellText=cell_text,
+        cellColours=cell_colors,
+        colLabels=[label for label, _ in columns],
+        loc="center",
+        cellLoc="left",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(8)
+    table.scale(1.1, 1.2)
+
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=0, vmax=1))
+    sm.set_array([])
+    cbar = plt.colorbar(
+        sm,
+        ax=ax,
+        fraction=0.046,
+        pad=0.12,
+        orientation="horizontal",
+        location="top",
+    )
+    cbar.set_label("Rank difference vs reference (lower is closer)")
+
+    ax.text(
+        0.0,
+        -0.08,
+        "Gray cells: not present in reference list",
+        transform=ax.transAxes,
+        fontsize=8,
+        va="top",
+    )
+
+    fig.tight_layout()
+    plt.show()
