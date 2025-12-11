@@ -5,10 +5,10 @@
 Every December, Spotify Wrapped drops into our feeds like clockwork,
 offering a personalized summary of our listening habits.
 It’s fun, vibrant, and sometimes feels spot-on.
-But let’s be honest, almost every year there are some details which just feels off.
+But let’s be honest, almost every year there are some details which just feel off.
 I'm not talking about the fact that "Baby Shark" made his way to my top songs,
 this one I can explain.
-I talking about this one song which you do listen to, but you are quite sure that not this much.
+I'm talking about this one song which you do listen to, but you are quite sure that not this much.
 Or a song you had on repeat and still didn't menage to crack your top-10 somehow.
 Last year [several](https://switchedonpop.com/episodes/breaking-through-doechii-mkgee-rose) [claims](https://www.musicradar.com/music-industry/streaming-sharing/spotify-says-they-got-your-wrapped-2024-wrong-but-this-year-theyre-going-to-fix-it) about the [inaccuracy](https://www.reddit.com/r/truespotify/comments/1h6fxdc/2024_spotify_wrapped_was_awful/) of the Spotify Wrapped rose on the media.
 For me it was ["Sunset"](https://open.spotify.com/track/203bhpOhWluOytYjvwQfl7?si=254130e627294591) by the talented Caroline Polachek which I just couldn't get enough,
@@ -40,7 +40,7 @@ the discrepancies became immediately obvious.
 ![visual-comarison](plots/spotvslast.png)
 
 As you can see my instincts where right regrading "Sunset".
-In general the two lists doesn't look unrelated but there are significant discrepancies.
+In general the two lists don't look unrelated but there are significant discrepancies.
 But how bad is it?
 How far are the two lists from each other?
 What does "far" even mean in this context?
@@ -81,9 +81,9 @@ If we keep this line of "how hard will we had to work to make one list look like
 Bubble-Sort distance, based on the idea behind the famous [sorting algorithm](https://en.wikipedia.org/wiki/Bubble_sort), measures how many adjacent swaps you’d need to align the two orders.
 For me this feels more appropriate for comparison which deals mainly with ranking.
 Note that as there are songs which appear on one lists only, we can't get them by merely swapping, so I added a step on which we concatenated the missing songs to the end of the lists, one might argue that this isn't the perfect way of doing this but it was the most straight forward for me.
-After digging a bit online I realized that this metric have another name: Kendall Tau Distance.
+After digging a bit online I realized that this metric has another name: Kendall Tau Distance.
 [Kendall Tau is Bubble-Sort Distance normalized](https://en.wikipedia.org/wiki/Kendall_tau_distance).
-I then also realized that this distance have a 'correlation cousin': The Kendall Tau Correlation Coefficient, [which can be calculated by using a different normalization factor](https://en.wikipedia.org/wiki/Kendall_tau_distance#Comparison_to_Kendall_tau_rank_correlation_coefficient).
+I then also realized that this distance has a 'correlation cousin': The Kendall Tau Correlation Coefficient, [which can be calculated by using a different normalization factor](https://en.wikipedia.org/wiki/Kendall_tau_distance#Comparison_to_Kendall_tau_rank_correlation_coefficient).
 Kendall Tau Correlation here is -0.089, almost neutral but slightly negative.
 The normalized bubble-sort distance is 0.521. So even if you only let yourself swap neighbors, you’d be doing about half the possible swaps to get alignment, still a messy reorder.
 
