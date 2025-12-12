@@ -1,4 +1,6 @@
-# Spotify Wrapped Was Off - But By How Much? A Statistical Deep Dive
+# How Wrong Was Spotify Wrapped? Comparing Ranked Lists Using Various Statistical Metrics
+
+## What statistical distance metrics can teach us about mismatched playlists and imperfect rankings.
 
 ## Background
 
@@ -234,11 +236,10 @@ Here is the updated table:
 
 ## Conclusion? Is there any?
 
-I'm not sure I know what Spotify did or how their numbers ended up being such a mismatch.
+And maybe this whole rabbit hole was also just an excuse for me to dig deeper into the strange world of ranked-list comparison - but honestly, I’m glad it was.
+I’m not sure what Spotify did or how their numbers ended up being such a mismatch.
 Is this intentional?
 Is there a reason or a deliberate bias?
 I don't know, and I have no indication that this is the case.
-I just know that the folks there are sitting on a huge gold mine of cool data,
-and what they end up doing with it is this mess.
+I just know that the folks there are sitting on a huge gold mine of cool data, and what they end up doing with it is this mess.
 It might not bother me as a user, but it offends me as a data scientist.
-
