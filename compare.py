@@ -105,13 +105,9 @@ class ListSimilarity:
         Compute Spearman rank correlation between two lists.
         """
 
-        rank1 = {item: i for i, item in enumerate(self.list1)}
-        rank2 = {item: i for i, item in enumerate(self.list2)}
-        common_items = set(self.list1) | set(self.list2)
-        ranks1 = [rank1.get(item, -1) for item in common_items]
-        ranks2 = [rank2.get(item, -1) for item in common_items]
+        ranks1, ranks2 = self._aligned_ranks()
         spear_corr, _ = spearmanr(ranks1, ranks2)
-        return spear_corr
+        return 0.0 if spear_corr is None else spear_corr
 
     def jaccard_similarity(self):
         """
