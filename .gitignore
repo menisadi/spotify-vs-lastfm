@@ -9,3 +9,4 @@ __pycache__/
 .DS_Store
 data/Spotify Extended Streaming History
 data/my_spotify_data.zip
+data/spot_raw_2025/extended_streaming_history

@@ -22,5 +22,6 @@ ignore = [
 
 [dependency-groups]
 dev = [
+    "ipython>=9.9.0",
     "pytest>=9.0.2",
 ]
